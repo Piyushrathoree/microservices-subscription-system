@@ -42,7 +42,7 @@ const RegisterUser = async (req, res) => {
         });
         const token = newUser.generateAuthToken();
         if (!token) {
-            return res  .status(500).json({
+            return res.status(500).json({
                 message: "Failed to generate authentication token",
             });
         }
@@ -97,7 +97,7 @@ const LoginUser = async (req, res) => {
     if (!userData) {
         return res.status(404).json({ message: "User data not found" });
     }
-    res.cookie("token", token)
+    res.cookie("token", token);
     return res.status(200).json({
         message: "User logged in successfully",
         token,
@@ -223,18 +223,14 @@ const LogoutUser = async (req, res) => {
     res.clearCookie("token");
     return res.status(200).json({ message: "User logged out successfully" });
 };
- const getProfile = async (req, res) => {
-    const user = await User.findById(req.params.id);
 
-    if (!user) {
-        return res.status(404).json({
-            message: "User not found",
-        });
+const getProfile = async (req, res) => {
+    try {
+        res.send(req.user);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
     }
-
-    res.status(200).json({ user });
 };
-
 
 export {
     RegisterUser,

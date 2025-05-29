@@ -8,7 +8,6 @@ import authMiddleware from "../UserService/middleware/user.middleware.js";
 dotenv.config();
 
 const app = express();
-
 // Essential Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));

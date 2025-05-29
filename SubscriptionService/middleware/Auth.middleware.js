@@ -1,7 +1,7 @@
 import jwt from "jsonwebtoken";
 import axios from "axios";
 const authMiddleware = async (req, res, next) => {
-    try {
+        console.log("Auth middleware triggered");
         const token =
             req.cookies.token || req.headers.authorization?.split(" ")[1];
 
@@ -31,12 +31,7 @@ const authMiddleware = async (req, res, next) => {
 
         req.user = response.data;
         next();
-    } catch (error) {
-        res.status(401).json({
-            status: "error",
-            message: "Invalid token",
-        });
-    }
+   
 };
 
 export default authMiddleware;
