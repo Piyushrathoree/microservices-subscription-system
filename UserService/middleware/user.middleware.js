@@ -14,7 +14,6 @@ const authMiddleware = async (req, res, next) => {
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    
 
     if (!decoded || !decoded.id) {
         console.error("Invalid token or user ID");
@@ -23,10 +22,12 @@ const authMiddleware = async (req, res, next) => {
             message: "Invalid token",
         });
     }
+    const objectId = new mongoose.Types.ObjectId(decoded.id);
 
     // Find the user by ID and exclude the password field
-    console.log("Finding user with ID:", decoded.id);
-    const user = await User.findById(decoded.id).select("-password");
+    console.log("Finding user with ID:", objectId);
+    const user = await User.findById(objectId).select("-password ");
+
     console.log("User found:", user);
 
     if (!user) {
