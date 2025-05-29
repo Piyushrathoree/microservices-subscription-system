@@ -14,7 +14,7 @@ const authMiddleware = async (req, res, next) => {
 
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
         const response = await axios.get(
-            `${process.env.USER_SERVICE_URL}/users/${decoded.id}`,
+            `${process.env.USER_SERVICE_URL}/user/${decoded.id}`,
             {
                 headers: {
                     Authorization: `Bearer ${token}`,

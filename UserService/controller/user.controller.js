@@ -223,13 +223,18 @@ const LogoutUser = async (req, res) => {
     res.clearCookie("token");
     return res.status(200).json({ message: "User logged out successfully" });
 };
+ const getProfile = async (req, res) => {
+    const user = await User.findById(req.params.id);
 
-const getProfile = async (req, res) => {
-    const id = req.user._id;
-    if (!id) {
-        res.status(401).json({ message: "unauthorized or user not found" });
+    if (!user) {
+        return res.status(404).json({
+            message: "User not found",
+        });
     }
+
+    res.status(200).json({ user });
 };
+
 
 export {
     RegisterUser,

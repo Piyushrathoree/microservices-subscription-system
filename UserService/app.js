@@ -19,7 +19,7 @@ app.use(cors({
 }));
 
 // Routes
-app.use("/api/users", userRouter);
+app.use("/", userRouter);
 
 // Health Check
 app.get("/health", (req, res) => {

@@ -2,9 +2,9 @@ import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import dotenv from "dotenv";
-import { router as planRouter } from "./routes/plan.route.js";
+import { router as planRouter } from "./routes/subscription.route.js";
 import authMiddleware from "../UserService/middleware/user.middleware.js";
-
+import './service/checkExpiry.js'
 dotenv.config();
 
 const app = express();

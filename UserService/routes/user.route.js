@@ -14,6 +14,6 @@ router.post("/reset-password/:token", validate(schemas.resetPassword), ResetPass
 
 // Protected routes
 router.post("/logout", authMiddleware, LogoutUser);
-router.get("/profile", authMiddleware, getProfile);
+router.get("/:id", authMiddleware, getProfile);
 
 export { router };
