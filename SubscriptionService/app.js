@@ -2,8 +2,7 @@ import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import dotenv from "dotenv";
-import { router as planRouter } from "./routes/subscription.route.js";
-import authMiddleware from "../UserService/middleware/user.middleware.js";
+import { router as subscriptionRouter } from "./routes/subscription.route.js";
 import './service/checkExpiry.js'
 dotenv.config();
 
@@ -15,7 +14,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(cors());
 
-app.use(authMiddleware)
-app.use("/api/plans", planRouter);
+
+app.use("/", subscriptionRouter);
 
 export default app;

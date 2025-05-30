@@ -1,11 +1,13 @@
 import Sub from "../models/subscription.model.js";
-
+import jwt from "jsonwebtoken";
 const createSubscription = async (req, res) => {
     try {
-        const { userId, planId } = req.body;
+        const { userId, planId } = req.body; // it will eventually come from the params redirected by frontend
 
         if (!userId || !planId) {
-            return res.status(400).json({ message: "User ID and Plan ID are required" });
+            return res
+                .status(400)
+                .json({ message: "User ID and Plan ID are required" });
         }
 
         const newSubscription = new Sub({
@@ -14,10 +16,10 @@ const createSubscription = async (req, res) => {
             status: "ACTIVE",
             startAt: new Date(),
         });
-
+        console.log("Creating new subscription:", newSubscription);
         await newSubscription.save();
 
-        return res.status(201).json({
+        return res.status(200).json({
             message: "Subscription created successfully",
             subscription: newSubscription,
         });
@@ -25,16 +27,18 @@ const createSubscription = async (req, res) => {
         console.error("Error creating subscription:", error);
         return res.status(500).json({ message: "Internal server error" });
     }
-}
+};
 const getSubscription = async (req, res) => {
     try {
-        const { userId } = req.params;
-
-        if (!userId) {
-            return res.status(400).json({ message: "User ID is required" });
+        const token =
+            req.cookies.token || req.headers.authorization?.split(" ")[1];
+        if (!token) {
+            return res.status(401).json({ message: "Authentication required" });
         }
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const userId = decoded.id;
 
-        const subscription = await Sub.findOne({ userId }).populate("planId");
+        const subscription = await Sub.find({ userId }).populate("planId");
 
         if (!subscription) {
             return res.status(404).json({ message: "Subscription not found" });
@@ -48,18 +52,20 @@ const getSubscription = async (req, res) => {
         console.error("Error retrieving subscription:", error);
         return res.status(500).json({ message: "Internal server error" });
     }
-}
+};
 const updateSubscription = async (req, res) => {
     try {
-        const { userId } = req.params;
-        const { status } = req.body;
+        const { subId } = req.params;
+        let { status } = req.body;
 
-        if (!userId || !status) {
-            return res.status(400).json({ message: "User ID and status are required" });
+        if (!subId || !status) {
+            return res
+                .status(400)
+                .json({ message: "Subscription ID and status are required" });
         }
-
+        status = status.toUpperCase();
         const subscription = await Sub.findOneAndUpdate(
-            { userId },
+            { _id: subId },
             { status },
             { new: true }
         );
@@ -69,25 +75,26 @@ const updateSubscription = async (req, res) => {
         }
 
         return res.status(200).json({
-            message: "Subscription renewed successfully , but next payment will be charged",
+            message:
+                "Subscription renewed successfully , but next payment will be charged",
             subscription,
         });
     } catch (error) {
         console.error("Error updating subscription:", error);
         return res.status(500).json({ message: "Internal server error" });
     }
-}
+};
 
 const cancelSubscription = async (req, res) => {
     try {
-        const { userId } = req.params;
+        const { subId } = req.params;
 
-        if (!userId) {
-            return res.status(400).json({ message: "User ID is required" });
+        if (!subId) {
+            return res.status(400).json({ message: "Subscription ID is required" });
         }
 
         const subscription = await Sub.findOneAndUpdate(
-            { userId },
+            { _id: subId },
             { status: "CANCELED" },
             { new: true }
         );
@@ -104,12 +111,11 @@ const cancelSubscription = async (req, res) => {
         console.error("Error canceling subscription:", error);
         return res.status(500).json({ message: "Internal server error" });
     }
-}
+};
 
-export  {
+export {
     createSubscription,
     getSubscription,
     updateSubscription,
-    cancelSubscription
+    cancelSubscription,
 };
-

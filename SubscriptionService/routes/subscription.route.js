@@ -11,7 +11,7 @@ const router = Router();
 router.use(authMiddleware);
 router.post("/", createSubscription);
 router.get("/", getSubscription);
-router.put("/:id", updateSubscription);
-router.delete("/:id", cancelSubscription);
+router.put("/:subId", updateSubscription);
+router.delete("/:subId", cancelSubscription);
 
 export { router };

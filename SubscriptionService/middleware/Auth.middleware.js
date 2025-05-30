@@ -1,4 +1,4 @@
-import jwt from "jsonwebtoken";
+
 import axios from "axios";
 const authMiddleware = async (req, res, next) => {
         console.log("Auth middleware triggered");
@@ -12,9 +12,8 @@ const authMiddleware = async (req, res, next) => {
             });
         }
 
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
         const response = await axios.get(
-            `${process.env.USER_SERVICE_URL}/user/${decoded.id}`,
+            `${process.env.USER_SERVICE_URL}/user/profile`,
             {
                 headers: {
                     Authorization: `Bearer ${token}`,
@@ -22,7 +21,7 @@ const authMiddleware = async (req, res, next) => {
             }
         );
 
-        if (!response.data || !response.data.user) {
+        if (!response.data ) {
             return res.status(401).json({
                 status: "error",
                 message: "User not found",
