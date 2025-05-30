@@ -7,64 +7,60 @@ import {
     sendWelcomeBackMail,
 } from "../mail/mail.js";
 import crypto from "crypto";
-const shareCode = generateHash();
+import rabbitMQService from "../service/rabbit.js";
+
 const RegisterUser = async (req, res) => {
     try {
         const { name, email, password } = req.body;
-        console.log(name, email, password);
-
-        if (!name || !email || !password) {
-            return res.status(400).json({ message: "All fields are required" });
-        }
 
         const existingUser = await User.findOne({ email });
         if (existingUser) {
-            return res.status(409).json({ message: "User already exists" });
+            return res.status(409).json({
+                status: "error",
+                message: "User already exists",
+            });
         }
 
         const verificationCode = generateVerificationCode();
-
-        if (!verificationCode) {
-            return res
-                .status(500)
-                .json({ message: "Failed to generate verification code" });
-        }
-
-        const hashedPassword = bcrypt.hashSync(password, 10);
+        const hashedPassword = await bcrypt.hash(password, 10);
+        const shareCode = generateHash();
 
         const newUser = new User({
             name,
             email,
             password: hashedPassword,
             verificationCode,
-            verificationTokenExpiresAt: Date.now() + 60 * 1000 * 10, // 10 minutes
             shareCode,
         });
-        const token = newUser.generateAuthToken();
-        if (!token) {
-            return res.status(500).json({
-                message: "Failed to generate authentication token",
-            });
-        }
-        await newUser.save();
 
-        const userData = await User.findById(newUser._id).select(
-            "-password -verificationCode -verificationTokenExpiresAt"
-        );
-        //verificaiton email sending
-        const data = await sendRegisterMail(email, verificationCode);
-        if (data == null) {
-            res.status(503).json({ message: "Email service unavailable" });
-        }
-        res.cookie("token", token);
-        return res.status(201).json({
+        await newUser.save();
+        const token = newUser.generateAuthToken();
+
+        // Send verification email
+        await sendRegisterMail(email, verificationCode);
+
+        // Publish user created event
+        await rabbitMQService.publishUserEvent("user.created", {
+            userId: newUser._id,
+            email: newUser.email,
+            name: newUser.name,
+        });
+
+        res.status(201).json({
+            status: "success",
             message: "User registered successfully",
             token,
-            user: userData,
+            user: {
+                id: newUser._id,
+                name: newUser.name,
+                email: newUser.email,
+            },
         });
     } catch (error) {
-        console.error("Error registering user:", error);
-        return res.status(500).json({ message: "Internal server error" });
+        res.status(500).json({
+            status: "error",
+            message: "Error registering user",
+        });
     }
 };
 
@@ -119,7 +115,7 @@ const VerifyUser = async (req, res) => {
         }
         user.isVerified = true;
         user.verificationCode = undefined;
-        user.verificationCodeExpires = undefined;
+        user.verificationTokenExpiresAt = undefined;
         await user.save();
 
         return res.status(200).json({ message: "You're verified now" });

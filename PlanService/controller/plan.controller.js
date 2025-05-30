@@ -1,4 +1,5 @@
 import Plan from "../models/plan.model.js";
+import rabbitMQService from "../service/rabbit.js";
 
 
 const createPlan = async (req, res) => {
@@ -18,6 +19,14 @@ const createPlan = async (req, res) => {
         });
 
         await newPlan.save();
+
+        // Publish plan created event
+        await rabbitMQService.publishPlanEvent('plan.created', {
+            planId: newPlan._id,
+            name: newPlan.name,
+            price: newPlan.price,
+            duration: newPlan.duration
+        });
 
         return res.status(201).json({
             status: "success",
@@ -55,6 +64,11 @@ const deletePlan = async (req, res) => {
             return res.status(404).json({ message: "Plan not found" });
         }
 
+        // Publish plan deleted event
+        await rabbitMQService.publishPlanEvent('plan.deleted', {
+            planId: plan._id
+        });
+
         return res.status(200).json({
             status: "success",
             message: "Plan deleted successfully"
@@ -83,6 +97,12 @@ const updatePlan = async (req, res) => {
         if (!updatedPlan) {
             return res.status(404).json({ message: "Plan not found" });
         }
+
+        // Publish plan updated event
+        await rabbitMQService.publishPlanEvent('plan.updated', {
+            planId: updatedPlan._id,
+            ...req.body
+        });
 
         return res.status(200).json({
             status: "success",

@@ -31,13 +31,13 @@ const authMiddleware = async (req, res, next) => {
 
     console.log("User found:", user);
 
-    if (user=== null) {
+    if (user === null ) {
         return res.status(401).json({
             status: "error",
             message: "User not found or unauthorized",
         });
     }
-console.log("User authenticated successfully:", user);
+    console.log("User authenticated successfully:", user);
 
     req.user = user;
     next();

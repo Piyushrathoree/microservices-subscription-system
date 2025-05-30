@@ -1,5 +1,7 @@
 import Sub from "../models/subscription.model.js";
 import jwt from "jsonwebtoken";
+import rabbitMQService from "../service/rabbit.js";
+
 const createSubscription = async (req, res) => {
     try {
         const { userId, planId } = req.body; // it will eventually come from the params redirected by frontend
@@ -14,10 +16,19 @@ const createSubscription = async (req, res) => {
             userId,
             planId,
             status: "ACTIVE",
-            startAt: new Date(),
+            startDate: new Date(),
         });
         console.log("Creating new subscription:", newSubscription);
         await newSubscription.save();
+
+        // Publish subscription created event
+        await rabbitMQService.publishSubscriptionEvent("subscription.created", {
+            subscriptionId: newSubscription._id,
+            userId: newSubscription.userId,
+            planId: newSubscription.planId,
+            startDate: newSubscription.startDate,
+            status: newSubscription.status,
+        });
 
         return res.status(200).json({
             message: "Subscription created successfully",
@@ -90,7 +101,9 @@ const cancelSubscription = async (req, res) => {
         const { subId } = req.params;
 
         if (!subId) {
-            return res.status(400).json({ message: "Subscription ID is required" });
+            return res
+                .status(400)
+                .json({ message: "Subscription ID is required" });
         }
 
         const subscription = await Sub.findOneAndUpdate(
@@ -102,6 +115,17 @@ const cancelSubscription = async (req, res) => {
         if (!subscription) {
             return res.status(404).json({ message: "Subscription not found" });
         }
+
+        // Publish subscription cancelled event
+        await rabbitMQService.publishSubscriptionEvent(
+            "subscription.cancelled",
+            {
+                subscriptionId: subscription._id,
+                userId: subscription.userId,
+                planId: subscription.planId,
+                cancelledAt: subscription.cancelledAt,
+            }
+        );
 
         return res.status(200).json({
             message: "Subscription canceled successfully",
