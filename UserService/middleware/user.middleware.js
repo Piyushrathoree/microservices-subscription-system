@@ -1,5 +1,6 @@
 import jwt from "jsonwebtoken";
 import { User } from "../models/user.model.js";
+import mongoose from "mongoose";
 
 const authMiddleware = async (req, res, next) => {
     console.log("hn bhai pahch rha yaha tk");
@@ -30,12 +31,13 @@ const authMiddleware = async (req, res, next) => {
 
     console.log("User found:", user);
 
-    if (!user) {
+    if (user=== null) {
         return res.status(401).json({
             status: "error",
-            message: "User not found",
+            message: "User not found or unauthorized",
         });
     }
+console.log("User authenticated successfully:", user);
 
     req.user = user;
     next();

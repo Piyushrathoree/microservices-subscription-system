@@ -1,4 +1,4 @@
-import Plan from "../models/Plan.model.js";
+import Plan from "../models/plan.model.js";
 
 
 const createPlan = async (req, res) => {
@@ -70,8 +70,8 @@ const updatePlan = async (req, res) => {
         const { id } = req.params;
         const { name, description, price } = req.body;
 
-        if (!id || !name || !description || !price) {
-            return res.status(400).json({ message: "All fields are required" });
+        if (!id) {
+            return res.status(400).json({ message: "plan not found" });
         }
 
         const updatedPlan = await Plan.findByIdAndUpdate(id, {

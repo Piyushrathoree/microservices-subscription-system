@@ -3,7 +3,7 @@ import mongoose, { Schema } from "mongoose";
 const planSchema = new Schema({
     name: { type: String, required: true },
     description: { type: String },
-    price: { type: Number, required: true },
+    price: { type: String, required: true },
     features: { type: [String], required: true },
     duration: { type: String, required: true }, // e.g., "monthly", "yearly"
     createdAt: { type: Date, default: Date.now },
