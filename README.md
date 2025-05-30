@@ -174,7 +174,6 @@ The system includes comprehensive error handling:
 - Email verification
 - Protected routes
 - CORS configuration
-- Rate limiting
 - Input validation
 
 ## Contributing
